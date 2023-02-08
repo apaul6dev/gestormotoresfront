@@ -1,39 +1,61 @@
-import { HttpClient, HttpHeaders } from "@angular/common/http";
-import { Injectable } from "@angular/core";
-import { Router } from "@angular/router";
-import { HOST, TOKEN_AUTH_PASSWORD, TOKEN_AUTH_USERNAME, TOKEN_NAME } from "../shared/constants";
+import {
+    HttpClient,
+    HttpErrorResponse,
+    HttpHeaders,
+    HttpResponse,
+} from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
+import { catchError, map, Observable, retry, throwError } from 'rxjs';
+
+import {
+    AuthenticationRequest,
+    AuthenticationResponse,
+} from '../api/authentication';
+import { HOST, TOKEN_NAME } from '../shared/constants';
 
 @Injectable({
-    providedIn: 'root'
+    providedIn: 'root',
 })
 export class LoginService {
-    
-    url = `${HOST}/oauth/token`;
+    url = `${HOST}/auth`;
 
-    constructor(private http: HttpClient, private router: Router) { }
+    httpOptions = {
+        headers: new HttpHeaders({
+            'Content-Type': 'application/json',
+        }),
+    };
 
-    login(usuario: string, contrasena: string) {
-        const body = `grant_type=password&username=${encodeURIComponent(usuario)}&password=${encodeURIComponent(contrasena)}`;
+    constructor(private http: HttpClient, private router: Router) {}
 
-        return this.http.post(this.url, body, {
-            headers: new HttpHeaders().set('Content-Type',
-                'application/x-www-form-urlencoded; charset=UTF-8')
-                .set('Authorization', 'Basic ' + btoa(TOKEN_AUTH_USERNAME + ':' + TOKEN_AUTH_PASSWORD))
-        });
+    authenticate(
+        credentials: AuthenticationRequest
+    ): Observable<AuthenticationResponse> {
+        return this.http
+            .post(this.url + '/authenticate', credentials, this.httpOptions)
+            .pipe(retry(2), catchError(this.handleError));
     }
 
-    estaLogeado() {
-        const token = sessionStorage.getItem(TOKEN_NAME);
-        return token != null;
+    isLoggedIn() {
+        return sessionStorage.getItem(TOKEN_NAME) != null;
     }
 
-    cerrarSesion() {
-        const token_session = sessionStorage.getItem(TOKEN_NAME);
-        const access_token = JSON.parse(token_session ? token_session : '').access_token;
-        this.http.get(`${HOST}/usuarios/anular/${access_token}`).subscribe(() => {
-            sessionStorage.clear();
-            this.router.navigate(['login']);
-        });
+    logout() {
+        sessionStorage.clear();
+        this.router.navigate(['/auth']);
     }
 
+    handleError(error: HttpErrorResponse) {
+        if (error.error instanceof ErrorEvent) {
+            console.error('An error occurred:', error.error.message);
+        } else {
+            console.error(
+                `Backend returned code ${error.status}, ` +
+                    `body was: ${error.error}`
+            );
+        }
+        return throwError(
+            () => new Error('Something bad happened; please try again later.')
+        );
+    }
 }
