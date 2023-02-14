@@ -12,25 +12,18 @@ import {
     AuthenticationRequest,
     AuthenticationResponse,
 } from '../api/authentication';
-import { HOST, TOKEN_NAME } from '../shared/constants';
+import { HOST, HTTP_OPTIONS, TOKEN_NAME } from '../shared/constants';
 
 @Injectable({
     providedIn: 'root',
 })
 export class LoginService {
     url = `${HOST}/auth`;
-
-    httpOptions = {
-        headers: new HttpHeaders({
-            'Content-Type': 'application/json',
-        }),
-    };
+    httpOptions = HTTP_OPTIONS;
 
     constructor(private http: HttpClient, private router: Router) {}
 
-    authenticate(
-        credentials: AuthenticationRequest
-    ): Observable<AuthenticationResponse> {
+    authenticate(credentials: AuthenticationRequest): Observable<AuthenticationResponse> {
         return this.http
             .post(this.url + '/authenticate', credentials, this.httpOptions)
             .pipe(retry(2), catchError(this.handleError));
@@ -38,6 +31,10 @@ export class LoginService {
 
     isLoggedIn() {
         return sessionStorage.getItem(TOKEN_NAME) != null;
+    }
+
+    getToken(){
+        return sessionStorage.getItem(TOKEN_NAME);
     }
 
     logout() {

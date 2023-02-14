@@ -15,6 +15,7 @@ import { JwtModule } from '@auth0/angular-jwt';
 import { TOKEN_NAME } from './etapa/shared/constants';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthInterceptor } from './etapa/components/helpers/auth.interceptor';
+import { ServerErrorsInterceptor } from './etapa/components/helpers/error-server.interceptor';
 
 export function tokenGetter() {
     const token_session = sessionStorage.getItem(TOKEN_NAME);
@@ -39,6 +40,11 @@ export function tokenGetter() {
         {
             provide: HTTP_INTERCEPTORS,
             useClass: AuthInterceptor,
+            multi: true,
+        },
+        {
+            provide: HTTP_INTERCEPTORS,
+            useClass: ServerErrorsInterceptor,
             multi: true,
         },
         {

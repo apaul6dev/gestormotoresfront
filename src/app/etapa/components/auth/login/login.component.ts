@@ -23,7 +23,7 @@ export class LoginComponent implements OnInit {
 
     valCheck: string[] = ['remember'];
 
-    email: string = 'paul@gmail.com';
+    username: string = 'paul';
     password: string = '1234';
 
     credentials: AuthenticationRequest = {};
@@ -39,7 +39,8 @@ export class LoginComponent implements OnInit {
     }
 
     login() {
-        this.credentials.email = this.email;
+        
+        this.credentials.username = this.username;
         this.credentials.password = this.password;
 
         this.loginService

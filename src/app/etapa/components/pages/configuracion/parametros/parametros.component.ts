@@ -33,6 +33,11 @@ export class ParametrosComponent implements OnInit {
 
     ngOnInit() {
 
+        this.parametroService.getParametros().subscribe(data => {
+            console.log(data);
+            
+          });
+
         //this.productService.getProducts().then(data => this.products = data);
 
         this.cols = [
